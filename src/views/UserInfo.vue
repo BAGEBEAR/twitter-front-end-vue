@@ -7,7 +7,11 @@
     :init-isSelf="isSelf"
     @after-follow="handleRelation"
   />
-  <ModalUserEdit v-if="isShow" :init-user-info="userInfo" />
+  <ModalUserEdit
+    v-if="isShow"
+    :init-user-info="userInfo"
+    @after-submit="handleAfterSubmit"
+  />
 
   <UserInfoTab />
   <Spinner v-if="isTabLoading" />
@@ -62,15 +66,27 @@ export default {
   created() {
     const { userId } = this.$route.params;
     this.getUser(userId);
-    
+    this.getArticle(userId);
   },
   computed: {
     ...mapState({
       isShow: (state) => state.modalUserInfo.isShow,
+      userInfoRefresh: (state) => state.modalArticle.userInfoRefresh,
       currentUser: (state) => state.authentication.currentUser,
     }),
     isSelf() {
       return Number(this.$route.params.userId) === this.currentUser.id;
+    },
+  },
+  watch: {
+    userInfo(newValue) {
+      this.articles = this.articles.map((_articles) => {
+        return { ..._articles, User: { ...newValue } };
+      });
+    },
+    userInfoRefresh() {
+      const { userId } = this.$route.params;
+      this.getArticle(userId);
     },
   },
   methods: {
@@ -78,11 +94,10 @@ export default {
       try {
         const { data } = await usersAPI.getUser(id);
         this.userInfo = data;
-        await this.getArticle(id);
-        await this.getLikes(id);
-        await this.getReplies(id);
         this.isTabLoading = false;
         this.isLoading = false;
+        this.getLikes(id);
+        this.getReplies(id);
       } catch (error) {
         this.isLoading = false;
         console.log(error);
@@ -115,18 +130,24 @@ export default {
         this.replyArticle = this.replyArticle.map((_replyArticle) => {
           return { ..._replyArticle, owner: { ...this.userInfo } };
         });
-        console.log(this.replyArticle);
       } catch (error) {
         console.log(error);
       }
     },
     handleRelation() {
       this.userInfo.isFollowed = !this.userInfo.isFollowed;
-      this.getUser(this.userInfo.id);
+    },
+    handleAfterSubmit() {
+      const { userId } = this.$route.params;
+      this.getUser(userId);
     },
   },
   beforeRouteUpdate(to, from, next) {
-    console.log(to);
+    this.isTabLoading = true;
+    this.isLoading = true;
+    const { userId } = to.params;
+    this.getUser(userId);
+    this.getArticle(userId);
     next();
   },
 };

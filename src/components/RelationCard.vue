@@ -11,15 +11,16 @@
           <div class="relation__name">{{ user.name }}</div>
           <div class="relation__account">@{{ user.account }}</div>
         </div>
+        <!-- <div v-if="user.id === currentUser.id">恭喜上榜!</div> -->
         <button
-          v-if="!user.isFollowed"
+          v-if="!user.isFollowed && user.id !== currentUser.id"
           @click.stop="addFollowShips(user.id)"
           class="relation__btn"
         >
           跟隨
         </button>
         <button
-          v-else
+          v-if="user.isFollowed && user.id !== currentUser.id"
           @click.stop="deleteFollowShips(user.id)"
           class="relation__btn relation__btn--active"
         >
@@ -32,6 +33,7 @@
 
 <script>
 import usersAPI from "@/apis/users";
+import { mapState } from "vuex";
 export default {
   data() {
     return {
@@ -40,6 +42,11 @@ export default {
   },
   created() {
     this.getTopFollowers();
+  },
+  computed: {
+    ...mapState({
+      currentUser: (state) => state.authentication.currentUser,
+    }),
   },
   methods: {
     async getTopFollowers() {
@@ -52,22 +59,22 @@ export default {
     },
     async addFollowShips(id) {
       try {
+        this.toggleFollow(id);
         const { data } = await usersAPI.follower.addFollowShips(id);
         if (data.status !== "success") {
           throw new Error(data.message);
         }
-        this.toggleFollow(id);
       } catch (error) {
         console.log(error);
       }
     },
     async deleteFollowShips(id) {
       try {
+        this.toggleFollow(id);
         const { data } = await usersAPI.follower.deleteFollowShips(id);
         if (data.status !== "success") {
           throw new Error(data.message);
         }
-        this.toggleFollow(id);
       } catch (error) {
         console.log(error);
       }
@@ -79,7 +86,7 @@ export default {
       });
     },
     toggleFollow(id) {
-      this.topUsers.map((_user) => {
+      this.topUsers.forEach((_user) => {
         _user.id === id ? (_user.isFollowed = !_user.isFollowed) : _user;
       });
     },
@@ -103,6 +110,7 @@ export default {
     width: 50px;
     height: 50px;
     border-radius: 50%;
+    cursor: pointer;
   }
   &__body {
     display: flex;
@@ -116,6 +124,7 @@ export default {
     align-items: flex-start;
     line-height: 20px;
     font-weight: bold;
+    cursor: pointer;
   }
   &__account {
     color: $clr-secondary;
@@ -130,6 +139,7 @@ export default {
     padding: 10px 15px;
     height: 35px;
     font-weight: bold;
+    cursor: pointer;
     &--active {
       background-color: $btn-primary;
       color: $clr-fourth;

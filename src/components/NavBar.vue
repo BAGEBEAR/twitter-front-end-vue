@@ -29,6 +29,61 @@
           <router-link
             class="navbar__menu"
             :to="{
+              name: 'ChatPublic',
+            }"
+          >
+            <img
+              v-if="currentPage === 'ChatPublic'"
+              src="@/assets/img/icon_msg_active@2x.png"
+              class="navbar__icon"
+            />
+            <img
+              v-else
+              src="@/assets/img/icon_msg@2x.png"
+              class="navbar__icon"
+            />
+            <div
+              :class="[
+                'navbar__title',
+                {
+                  'navbar__title--active': currentPage === 'ChatPublic',
+                },
+              ]"
+            >
+              公開聊天室
+            </div>
+          </router-link>
+          <router-link
+            class="navbar__menu"
+            :to="{
+              name: 'ChatPrivate',
+            }"
+          >
+            <img
+              v-if="currentPage === 'ChatPrivate'"
+              src="@/assets/img/icon_msg_active@2x.png"
+              class="navbar__icon"
+            />
+            <img
+              v-else
+              src="@/assets/img/icon_msg@2x.png"
+              class="navbar__icon"
+            />
+            <div
+              :class="[
+                'navbar__title',
+                {
+                  'navbar__title--active': currentPage === 'ChatPrivate',
+                },
+              ]"
+            >
+              私人訊息
+              <span class="navbar__unread">{{ unReadCount }}</span>
+            </div>
+          </router-link>
+          <router-link
+            class="navbar__menu"
+            :to="{
               name: 'UserInfo',
               params: { userId: currentUser.id || 'null' },
             }"
@@ -121,40 +176,56 @@
 import { mapState } from "vuex";
 
 export default {
+  name: "NavBar",
   data() {
     return {
       HomeURL: ["Home", "ArticleShow"],
       UserURL: ["UserInfo", "UserInfoWithReply", "UserInfoWithLike"],
+      unReadCount: 0,
     };
+  },
+  sockets: {
+    unReadCount(data) {
+      this.unReadCount = data;
+    },
+  },
+  created() {
+    this.$socket.connect();
+  },
+  mounted() {
+    this.$nextTick(function () {
+      this.joinPrivate(this.currentUser.id);
+      this.$socket.emit("unReadCount", this.currentUser.id);
+    });
   },
   computed: {
     isAdminPage() {
       let currentURL = this.$route;
-      console.log("URL.name", currentURL.name);
       const pathWithoutSideRender = ["AdminUsers", "AdminArticles"];
       if (pathWithoutSideRender.includes(currentURL.name)) {
         return true;
       }
       return false;
     },
-
     currentPage() {
-      console.log("currentPage:", this.$route.name);
       return this.$route.name;
     },
-
     ...mapState({
       currentUser: (state) => state.authentication.currentUser,
     }),
   },
 
   methods: {
+    joinPrivate(senderId) {
+      this.$socket.emit("privateEnter", { senderId });
+    },
     handleNewPost() {
       this.$emit("after-click");
     },
 
     logout() {
       this.$store.commit("authentication/revokeAuthentication");
+      this.$store.commit("chatPrivate/RESET_PRIVATE");
       this.$router.push("/login");
     },
   },
@@ -165,7 +236,7 @@ export default {
 .navbar {
   width: 235px;
   height: 100vh;
-  // padding: 0 20px;
+  padding: 0 20px;
   display: flex;
   flex: 0 1 auto;
   align-items: stretch;
@@ -187,6 +258,12 @@ export default {
     margin-top: 14px;
     margin-left: 10px;
     margin-bottom: 30px;
+  }
+
+  &__unread {
+    font-size: 15px;
+    font-weight: bold;
+    color: red;
   }
 
   &__menu {

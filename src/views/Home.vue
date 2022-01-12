@@ -1,6 +1,6 @@
 <template>
   <AppBar :status="'首頁'" />
-  <ArticleNew :current-user="currentUser" @after-submit="fetchArticles" />
+  <ArticleNew @after-submit="afterSubmit" />
   <Spinner v-if="isLoading" />
   <ArticleCard v-else :init-articles="articles" />
 </template>
@@ -10,7 +10,6 @@ import ArticleNew from "@/components/ArticleNew.vue";
 import ArticleCard from "@/components/ArticleCard.vue";
 import Spinner from "@/components/Spinner.vue";
 import AppBar from "@/components/AppBar.vue";
-import articlesAPI from "@/apis/articles";
 import { mapState } from "vuex";
 
 export default {
@@ -22,7 +21,7 @@ export default {
   },
   data() {
     return {
-      articles: [],
+      // articles: [],
       isLoading: true,
     };
   },
@@ -30,17 +29,30 @@ export default {
     this.fetchArticles();
   },
   computed: {
-    ...mapState("authentication", ["currentUser"]),
+    ...mapState({
+      articles: (state) => state.modalArticle.articles,
+    }),
+    // ...mapActions({
+    //   fetchArticles: "modalArticle/FETCH_ARTICLES",
+    // }),
   },
   methods: {
     async fetchArticles() {
       try {
         this.isLoading = true;
-        const response = await articlesAPI.getArticles();
-        this.articles = response.data;
+        // const response = await articlesAPI.getArticles();
+        // this.articles = response.data;
+        await this.$store.dispatch("modalArticle/FETCH_ARTICLES");
         this.isLoading = false;
       } catch (error) {
         this.isLoading = false;
+        console.log(error);
+      }
+    },
+    async afterSubmit() {
+      try {
+        await this.$store.dispatch("modalArticle/FETCH_ARTICLES");
+      } catch (error) {
         console.log(error);
       }
     },

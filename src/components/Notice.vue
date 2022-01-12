@@ -1,5 +1,6 @@
 <template>
   <div
+    v-show="isNotice"
     :class="[
       isNotice && notice.type === 'success'
         ? ['notice__box', 'notice__box--show']
@@ -17,6 +18,7 @@
   </div>
 
   <div
+    v-show="isNotice"
     :class="[
       isNotice && notice.type === 'error'
         ? ['notice__box', 'notice__box--show']
@@ -55,8 +57,8 @@ export default {
     justify-content: space-between;
     position: fixed;
     top: 15px;
-    right: 15px;
-    z-index: 999;
+    right: 40%;
+    z-index: 9999;
     width: 354px;
     height: 56px;
     padding: 20px;

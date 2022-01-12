@@ -132,6 +132,10 @@ export default {
         if (data.status !== "success") {
           throw new Error(data.message);
         }
+        this.$store.commit("noticeInfo/toggleNotice", {
+          type: "success",
+          message: data.message,
+        });
       } catch (error) {
         console.log(error);
       }
@@ -178,6 +182,7 @@ export default {
   }
   &__main {
     margin-left: 10px;
+    width: 85%;
   }
   &__name {
     font-weight: bold;
@@ -188,7 +193,9 @@ export default {
     color: $clr-secondary;
   }
   &__body {
+    width: 100%;
     font-weight: 500;
+    overflow-wrap: break-word;
   }
   &__footer {
     display: flex;

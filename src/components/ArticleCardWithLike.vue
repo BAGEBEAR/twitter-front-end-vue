@@ -42,7 +42,7 @@
                 class="article-card__comment"
                 @click.stop="
                   TOGGLE_MODAL();
-                  LOAD_ARTICLE(article);
+                  handleModalReply(article);
                 "
               >
                 <img
@@ -154,7 +154,17 @@ export default {
         console.log(error);
       }
     },
-    async getLikes() {},
+    handleModalReply(article) {
+      const { avatar, account, name } = article.Tweet.User;
+      const { description } = article.Tweet;
+      const { createdAt } = article;
+      let articleTemp = {
+        User: { avatar, account, name },
+        description,
+        createdAt,
+      };
+      this.$store.commit("modalArticle/LOAD_ARTICLE", articleTemp);
+    },
   },
   mixins: [fromNowMixin],
 };
@@ -186,6 +196,7 @@ export default {
   }
   &__main {
     margin-left: 10px;
+    width: 85%;
   }
   &__name {
     font-weight: bold;
@@ -197,6 +208,7 @@ export default {
   }
   &__body {
     font-weight: 500;
+    overflow-wrap: break-word;
   }
   &__footer {
     display: flex;

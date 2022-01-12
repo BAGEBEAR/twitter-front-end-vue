@@ -20,8 +20,6 @@ export default {
   },
   mutations: {
     [setCurrentUser]: (state, currentUser) => {
-      console.log("setCurrentUser in vuex");
-      console.log("currentUser:", currentUser);
       state.currentUser = {
         ...state.currentUser,
         ...currentUser,
@@ -30,7 +28,6 @@ export default {
       state.token = localStorage.getItem("token");
     },
     [revokeAuthentication]: (state) => {
-      console.log("revoke authentication");
       state.currentUser = {};
       state.isAuthenticated = false;
       localStorage.removeItem("token");
@@ -41,15 +38,11 @@ export default {
     async fetchCurrentUser({ commit }) {
       try {
         const { data } = await usersAPI.getCurrentUser();
-        console.log("currentUserAPI", data);
-
         if (data.status === "error") {
           throw new Error(data.message);
         }
-
         const { id, account, name, email, avatar, cover, role, introduction } =
           data.user;
-
         commit("setCurrentUser", {
           id,
           account,
